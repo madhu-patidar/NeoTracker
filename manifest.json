@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "author":"Himesh",
+  "name": "NEO Tracker",
+  "description": "Track training time and capture screen from time to time",
+  "version": "1.0",
+  "permissions": [
+    "tabs","<all_urls>","storage","activeTab","contextMenus"
+  ],
+  "browser_action":{
+    "default_popup": "popup.html"
+  },
+  "background":{
+    "scripts":["jquery.min.js", "background.js"]
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["injectedScript.js"]
+    }
+  ]
+}
+

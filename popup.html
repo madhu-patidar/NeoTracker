@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+  <head>
+    <title>NEOTracker</title>
+    <script src="jquery.min.js"></script>
+    <script src="popup.js"></script>
+    <link rel="stylesheet" type="text/css" href="popup.css">
+  </head>
+  <body>
+  <div id="login-content">
+     <form id="login-form">
+      <div class="container">
+        <label for="uname"><b>Username</b></label>
+        <input type="text" placeholder="Enter Username" id="user-name" name="uname" required>
+
+        <label for="psw"><b>Password</b></label>
+        <input type="password" placeholder="Enter Password" id="pwd" name="psw" required>
+        <button id="login" type="submit" class="login-btn">Login</button>
+      </div>
+    </form> 
+  </div>
+  <div id="main-content">
+    <button id="logout">logout</button>
+    <h1 id='training'>Training Timer</h1>
+    <span id='trainingTime'>0:0:0</span>
+    <img id='snap'></img>
+    <button id="startTraining">Start</button>
+    <button id="stopTraining">Stop</button>
+    <button id='test'> TEST </button>
+    <span id='testspan'></span>
+  </div>
+    
+  </body>
+</html>
