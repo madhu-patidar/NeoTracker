@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let userName =  document.getElementById("user-name").value;
     let password = document.getElementById("pwd").value;
     if(userName.trim() == '' || password.trim() ==''){
+      $("#error").text("Username & password can't be blank");
       return false;
     }
     let user = {userName: userName, password: password}
@@ -31,10 +32,6 @@ document.addEventListener('DOMContentLoaded', function() {
     localStorage.clear();
     document.getElementById("login-content").style.display = "block";
     document.getElementById("main-content").style.display = "none";
-  }
-
-  test.onclick = function(elem){
-     notifyBackend({key: 'setTestButtonValue'})
   }
   
   //stopTraining.setAttribute('disabled', true);
@@ -63,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
         success: function(data) {
           console.log("end of session");
           console.log(data);
-          localStorage.clear();
+          // localStorage.clear();
           SessionId = undefined;
         }
       });
@@ -102,7 +99,7 @@ function onLogin(user){
       $("#main-content").css("display","block");
       }else{
         // alert(data.message)
-        $("#error").css("display", "block");
+        $("#error").text(data.message);
       }
     }
   });
@@ -136,6 +133,7 @@ function captureImage(){
   chrome.tabs.captureVisibleTab(null, {}, function (image) {
     console.log('capturing image');
     document.getElementById('snap').src = image;
+    $('#snap').css({'height':'100', 'width':'200'})
     if (SessionId == undefined) {
       sendToServer();
     } else {
