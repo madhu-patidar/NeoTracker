@@ -1,6 +1,8 @@
 'use strict';
 var SessionId;
 var testButtonActive = false;
+var ApiBaseUrl = 'http://localhost:3000/api/v1';
+var ErrorMsg = 'invalid credential';
 document.addEventListener('DOMContentLoaded', function() {
   let startTraining = document.getElementById('startTraining');
   let stopTraining = document.getElementById('stopTraining')
@@ -22,9 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
     let user = {userName: userName, password: password}
-    localStorage.setItem('currentUser', JSON.stringify(user));
-    document.getElementById("login-content").style.display = "none";
-    document.getElementById("main-content").style.display = "block";
+    onLogin(user)
   }
 
   logout.onclick = function(){
@@ -43,25 +43,21 @@ document.addEventListener('DOMContentLoaded', function() {
     //startTraining.setAttribute('disabled', true);
     //stopTraining.removeAttribute('disabled');
     // startTraining api call
+    onTrainingStart();
   }
 
   stopTraining.onclick = function(elem){
     notifyBackend({key: 'stop-training'})
     // endTraining api call
-    //stopTraining.setAttribute('disabled', true);
-    //startTraining.removeAttribute('disabled');
     SessionId = localStorage.getItem('SessionId');
-    if(SessionId != undefined) {
-      let data = { device: {
-          mac_id: 'a343hasdjsadjsd',
+      let data = {
           session_id: SessionId,
           training_status: 'end'
-        }
       }
       console.log('before device ajax call');
       $.ajax({
         type: "POST",
-        url: "http://localhost:3000/api/v1/devices",
+        url: ApiBaseUrl + "/sessions",
         data: data,
         async: false,
         success: function(data) {
@@ -71,9 +67,45 @@ document.addEventListener('DOMContentLoaded', function() {
           SessionId = undefined;
         }
       });
-    }
   }
 });
+
+function onTrainingStart(){
+  let data = {
+      training_status: 'start'
+  }
+  $.ajax({
+    type: "POST",
+    url: ApiBaseUrl + "/sessions",
+    data: data,
+    async: false,
+    success: function(response) {
+      console.log("Time start");
+      console.log(data);
+      SessionId = response.session_id;
+      localStorage.setItem('sessionId', JSON.stringify(SessionId));
+    }
+  });
+}
+
+function onLogin(user){
+  $.ajax({
+    type: "GET",
+    url: ApiBaseUrl + "/sessions/login",
+    data: user,
+    async: false,
+    success: function(data) {
+      if(data.logedIn){
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      document.getElementById("login-content").style.display = "none";
+      document.getElementById("main-content").style.display = "block";
+      }else{
+        alert(data.message)
+        $('#error').text(data.message); 
+      }
+    }
+  });
+}
 
 function notifyBackend(data){
   chrome.runtime.sendMessage(data, function() { });
@@ -86,7 +118,6 @@ chrome.runtime.onMessage.addListener(
       updateTimerValue(request.value.timer)
     }
     if(request.key == 'setButton'){
-
        document.getElementById('testspan').innerText = request.value
     }
   }
@@ -95,7 +126,7 @@ chrome.runtime.onMessage.addListener(
 function updateTimerValue(timer){
   console.log('timer value', timer);
   document.getElementById('trainingTime').innerText = timer.hh + ":" + timer.mm + ":" + timer.ss;
-  if(timer.ss % 10 == 0){
+  if(timer.ss % 20 == 0){
     captureImage();
   }
 }
@@ -107,6 +138,7 @@ function captureImage(){
     if (SessionId == undefined) {
       sendToServer();
     } else {
+      // TO DO ME
       uploadImage({session_id: SessionId })
     }
 
@@ -115,21 +147,20 @@ function captureImage(){
 
 // api call to save image on server
 function sendToServer(){
-  let data = { device: {
-      mac_id: 'a343hasdjsadjsd',
-      training_status: 'start'
-    }
+  let data = { 
+    training_status: 'start'
   }
   console.log('before device ajax call');
   $.ajax({
     type: "POST",
-    url: "http://localhost:3000/api/v1/devices",
+    url: ApiBaseUrl + "/sessions",
     data: data,
     async: false,
     success: function(data){
       // call the image upload api
       console.log('device api sucess');
       console.log(data);
+      // TO DO ME
       uploadImage(data.data);
     }
   });
@@ -148,7 +179,7 @@ function uploadImage(data) {
   console.log('before image upload ajax call');
   $.ajax({
     type: "POST",
-    url: "http://localhost:3000/api/v1/sessions/upload_image",
+    url: ApiBaseUrl + "/sessions/upload_image",
     data: params,
     async: false,
     success: function(data){
