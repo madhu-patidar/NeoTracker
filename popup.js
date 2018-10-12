@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('before device ajax call');
       $.ajax({
         type: "POST",
-        url: ApiBaseUrl + "/sessions",
+        url: ApiBaseUrl + "/training_sessions",
         data: data,
         async: false,
         success: function(data) {
@@ -76,7 +76,7 @@ function onTrainingStart(){
   }
   $.ajax({
     type: "POST",
-    url: ApiBaseUrl + "/sessions",
+    url: ApiBaseUrl + "/training_sessions",
     data: data,
     async: false,
     success: function(response) {
@@ -91,17 +91,18 @@ function onTrainingStart(){
 function onLogin(user){
   $.ajax({
     type: "GET",
-    url: ApiBaseUrl + "/sessions/login",
+    url: ApiBaseUrl + "/training_sessions/login",
     data: user,
     async: false,
     success: function(data) {
       if(data.logedIn){
       localStorage.setItem('currentUser', JSON.stringify(user));
-      document.getElementById("login-content").style.display = "none";
-      document.getElementById("main-content").style.display = "block";
+      $("#error").css("display", "none");
+      $("#login-content").css("display", "none");
+      $("#main-content").css("display","block");
       }else{
-        alert(data.message)
-        $('#error').text(data.message); 
+        // alert(data.message)
+        $("#error").css("display", "block");
       }
     }
   });
@@ -114,7 +115,7 @@ function notifyBackend(data){
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     console.log('request data', request)
-    if( request.key == 'trainingTime') {
+    if( request.key == 'trainingTime' && request.trainingInProgress) {
       updateTimerValue(request.value.timer)
     }
     if(request.key == 'setButton'){
@@ -126,7 +127,7 @@ chrome.runtime.onMessage.addListener(
 function updateTimerValue(timer){
   console.log('timer value', timer);
   document.getElementById('trainingTime').innerText = timer.hh + ":" + timer.mm + ":" + timer.ss;
-  if(timer.ss % 20 == 0){
+  if(timer.ss % 10 == 0){
     captureImage();
   }
 }
@@ -153,7 +154,7 @@ function sendToServer(){
   console.log('before device ajax call');
   $.ajax({
     type: "POST",
-    url: ApiBaseUrl + "/sessions",
+    url: ApiBaseUrl + "/training_sessions",
     data: data,
     async: false,
     success: function(data){
@@ -179,7 +180,7 @@ function uploadImage(data) {
   console.log('before image upload ajax call');
   $.ajax({
     type: "POST",
-    url: ApiBaseUrl + "/sessions/upload_image",
+    url: ApiBaseUrl + "/training_sessions/upload_image",
     data: params,
     async: false,
     success: function(data){

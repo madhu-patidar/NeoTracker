@@ -57,7 +57,7 @@ function setTestButtonValue(){
 
  }
 function updateFrontEndTimer(){
-  notifyFrontEnd({key: 'trainingTime', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}})
+  notifyFrontEnd({key: 'trainingTime', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
 }
 
 function notifyFrontEnd(data){
