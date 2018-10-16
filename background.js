@@ -6,14 +6,18 @@ let timerRunning = false;
 let idleTime = 0;
 let idleTimerRunning = false;
 let buttonValue;
+let timmer_flag = false;
+let timer123
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   console.log(request);
   if (request.key == "start-training"){
+    timmer_flag = true;
     if(timerRunning == false){
       resetTimer();
       timerRunning = true;
       trainingInProgress = true;
+      clearInterval(timer123);
       timer123 = setInterval(function(){
         if(trainingInProgress){
           trainingSecs = trainingSecs + 1;
@@ -27,9 +31,6 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
           }
         }
         updateFrontEndTimer()
-        if(buttonValue =='test button'){
-          setTestButtonValue();
-        }
       }, 1000)
     }
     sendResponse('training started');
@@ -40,22 +41,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     trainingSecs = 0;
     timerRunning = false;
     trainingInProgress = false;
-     sendResponse('training started');
+     sendResponse('training stop');
   }else if( request.key == 'resetTimer'){
     resetTimer();
-  }else if(request.key == 'setTestButtonValue'){
-    setTestButtonValue();
-    buttonValue = 'test button'
+    timmer_flag = false;
   }
 });
 
-function setTestButtonValue(){
- notifyFrontEnd({key: 'setButton', value: 'test button'})
-}
-
- function setTestButtonValue(){
-
- }
 function updateFrontEndTimer(){
   notifyFrontEnd({key: 'trainingTime', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
 }

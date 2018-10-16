@@ -6,7 +6,6 @@ var ErrorMsg = 'invalid credential';
 document.addEventListener('DOMContentLoaded', function() {
   let startTraining = document.getElementById('startTraining');
   let stopTraining = document.getElementById('stopTraining')
-  let testButton = document.getElementById('test')
   let currentUser = localStorage.getItem('currentUser');
 
   if(currentUser){
@@ -29,6 +28,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   logout.onclick = function(){
+    SessionId = localStorage.getItem('sessionId');
+    if(SessionId) 
+      notifyBackend({key: 'stop-training'})
+    // endTraining api call
+
     localStorage.clear();
     document.getElementById("login-content").style.display = "block";
     document.getElementById("main-content").style.display = "none";
@@ -46,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function() {
   stopTraining.onclick = function(elem){
     notifyBackend({key: 'stop-training'})
     // endTraining api call
-    SessionId = localStorage.getItem('SessionId');
+    SessionId = localStorage.getItem('sessionId');
       let data = {
           session_id: SessionId,
           training_status: 'end'
@@ -77,9 +81,11 @@ function onTrainingStart(){
     data: data,
     async: false,
     success: function(response) {
+      debugger
       console.log("Time start");
       console.log(data);
-      SessionId = response.session_id;
+      SessionId = response.data.session_id;
+      debugger
       localStorage.setItem('sessionId', JSON.stringify(SessionId));
     }
   });
@@ -130,17 +136,12 @@ function updateTimerValue(timer){
 }
 
 function captureImage(){
+  SessionId = localStorage.getItem('sessionId');
   chrome.tabs.captureVisibleTab(null, {}, function (image) {
     console.log('capturing image');
     document.getElementById('snap').src = image;
     $('#snap').css({'height':'100', 'width':'200'})
-    if (SessionId == undefined) {
-      sendToServer();
-    } else {
-      // TO DO ME
       uploadImage({session_id: SessionId })
-    }
-
   });
 }
 
