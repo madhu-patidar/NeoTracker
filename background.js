@@ -33,6 +33,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         updateFrontEndTimer()
       }, 1000)
     }
+     notifyCurrentTab({key: 'start-training', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
     sendResponse('training started');
   } else if (request.key == "stop-training") {
     clearAllIntervals()
@@ -42,6 +43,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     timerRunning = false;
     trainingInProgress = false;
      sendResponse('training stop');
+      notifyCurrentTab({key: 'stop-training', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
   }else if( request.key == 'resetTimer'){
     resetTimer();
     timmer_flag = false;
@@ -76,7 +78,7 @@ function resetTimer() {
         console.log('starting timer...')
         idleTime = idleTime + 1
         console.log('idleTime from interval', idleTime)
-        if(idleTime > 10){
+        if(idleTime > 30){
           notifyCurrentTab({key: 'idleNotify'})
         }
       }, 1000)

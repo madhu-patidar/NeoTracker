@@ -81,11 +81,9 @@ function onTrainingStart(){
     data: data,
     async: false,
     success: function(response) {
-      debugger
       console.log("Time start");
       console.log(data);
       SessionId = response.data.session_id;
-      debugger
       localStorage.setItem('sessionId', JSON.stringify(SessionId));
     }
   });
@@ -131,7 +129,7 @@ function updateTimerValue(timer){
   console.log('timer value', timer);
   document.getElementById('trainingTime').innerText = timer.hh + ":" + timer.mm + ":" + timer.ss;
   if(timer.ss % 10 == 0){
-    captureImage();
+    // captureImage();
   }
 }
 
