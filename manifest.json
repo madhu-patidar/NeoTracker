@@ -16,7 +16,7 @@
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*"],
-      "js": ["injectedScript.js"]
+      "js": ["jquery.min.js", "html2canvas.js", "injectedScript.js"]
     }
   ]
 }

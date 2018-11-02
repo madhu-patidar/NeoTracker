@@ -24,90 +24,94 @@ document.addEventListener('DOMContentLoaded', function() {
       return false;
     }
     let user = {userName: userName, password: password}
-    onLogin(user)
+    notifyBackend({key: 'user-login', user: user})
   }
 
   logout.onclick = function(){
     SessionId = localStorage.getItem('sessionId');
     if(SessionId) 
       notifyBackend({key: 'stop-training'})
+     document.getElementById('trainingTime').innerText = 0 + ":" + 0 + ":" + 0;
+      SessionId = undefined
     // endTraining api call
 
-    localStorage.clear();
+    //localStorage.clear();
     document.getElementById("login-content").style.display = "block";
     document.getElementById("main-content").style.display = "none";
   }
   
   //stopTraining.setAttribute('disabled', true);
   startTraining.onclick = function(elem){
-    notifyBackend({key: 'start-training'});
     //startTraining.setAttribute('disabled', true);
     //stopTraining.removeAttribute('disabled');
     // startTraining api call
-    onTrainingStart();
+    notifyBackend({key: 'start-training'});
+    // onTrainingStart();
   }
 
   stopTraining.onclick = function(elem){
     notifyBackend({key: 'stop-training'})
+    document.getElementById('trainingTime').innerText = 0 + ":" + 0 + ":" + 0;
     // endTraining api call
-    SessionId = localStorage.getItem('sessionId');
-      let data = {
-          session_id: SessionId,
-          training_status: 'end'
-      }
-      console.log('before device ajax call');
-      $.ajax({
-        type: "POST",
-        url: ApiBaseUrl + "/training_sessions",
-        data: data,
-        async: false,
-        success: function(data) {
-          console.log("end of session");
-          console.log(data);
-          // localStorage.clear();
-          SessionId = undefined;
-        }
-      });
+    // SessionId = localStorage.getItem('sessionId');
+    //   let data = {
+    //       session_id: SessionId,
+    //       training_status: 'end'
+    //   }
+    //   console.log('before device ajax call');
+    //   $.ajax({
+    //     type: "POST",
+    //     url: ApiBaseUrl + "/training_sessions",
+    //     data: data,
+    //     async: false,
+    //     success: function(data) {
+    //       console.log("end of session");
+    //       console.log(data);
+    //       // localStorage.clear();
+    //       SessionId = undefined;
+    //     }
+    //   });
   }
 });
 
-function onTrainingStart(){
-  let data = {
-      training_status: 'start'
-  }
-  $.ajax({
-    type: "POST",
-    url: ApiBaseUrl + "/training_sessions",
-    data: data,
-    async: false,
-    success: function(response) {
-      console.log("Time start");
-      console.log(data);
-      SessionId = response.data.session_id;
-      localStorage.setItem('sessionId', JSON.stringify(SessionId));
-    }
-  });
-}
+// function onTrainingStart(){
+//   let data = {
+//       training_status: 'start'
+//   }
+//   $.ajax({
+//     type: "POST",
+//     url: ApiBaseUrl + "/training_sessions",
+//     data: data,
+//     async: false,
+//     success: function(response) {
+//       console.log("Time start");
+//       console.log(data);
+//       SessionId = response.data.session_id;
+//       localStorage.setItem('sessionId', JSON.stringify(SessionId));
+//       notifyBackend({key: 'start-training', SessionId :SessionId});
+//     }
+//   });
+// }
 
-function onLogin(user){
-  $.ajax({
-    type: "GET",
-    url: ApiBaseUrl + "/training_sessions/login",
-    data: user,
-    async: false,
-    success: function(data) {
-      if(data.logedIn){
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      $("#error").css("display", "none");
-      $("#login-content").css("display", "none");
-      $("#main-content").css("display","block");
-      }else{
-        // alert(data.message)
-        $("#error").text(data.message);
-      }
-    }
-  });
-}
+// function onLogin(user){
+//   $.ajax({
+//     type: "GET",
+//     url: ApiBaseUrl + "/training_sessions/login",
+//     data: user,
+//     async: false,
+//     success: function(data) {
+//       if(data.logedIn){
+//       localStorage.setItem('currentUser', JSON.stringify(user));
+//       $("#error").css("display", "none");
+//       $("#login-content").css("display", "none");
+//       $("#main-content").css("display","block");
+//       }else{
+//         // alert(data.message)
+//         $("#error").text(data.message);
+//       }
+//     }
+//   });
+// }
 
 function notifyBackend(data){
   chrome.runtime.sendMessage(data, function() { });
@@ -118,9 +122,17 @@ chrome.runtime.onMessage.addListener(
     console.log('request data', request)
     if( request.key == 'trainingTime' && request.trainingInProgress) {
       updateTimerValue(request.value.timer)
-    }
-    if(request.key == 'setButton'){
+    }else if(request.key == 'setButton'){
        document.getElementById('testspan').innerText = request.value
+    }else if(request.key == 'user-logedId'){
+       if(request.data.logedIn){
+        localStorage.setItem('currentUser', JSON.stringify(request.user));
+        $("#error").css("display", "none");
+        $("#login-content").css("display", "none");
+        $("#main-content").css("display","block");
+       }else{
+        $("#error").text(request.data.message);
+       }
     }
   }
 );
@@ -165,26 +177,26 @@ function sendToServer(){
   console.log('after device ajax call');
 }
 
-function uploadImage(data) {
-  let blob_image = document.getElementById('snap').src
-  SessionId = data.session_id
-  localStorage.setItem('SessionId', SessionId);
-  let params = { session: {
-      session_id: SessionId,
-      image: blob_image
-    }
-  }
-  console.log('before image upload ajax call');
-  $.ajax({
-    type: "POST",
-    url: ApiBaseUrl + "/training_sessions/upload_image",
-    data: params,
-    async: false,
-    success: function(data){
-      console.log('image upload sucess');
-      console.log(data);
-    }
-  });
-  console.log('after image upload ajax call');
-}
+// function uploadImage(data) {
+//   let blob_image = document.getElementById('snap').src
+//   SessionId = data.session_id
+//   localStorage.setItem('SessionId', SessionId);
+//   let params = { session: {
+//       session_id: SessionId,
+//       image: blob_image
+//     }
+//   }
+//   console.log('before image upload ajax call');
+//   $.ajax({
+//     type: "POST",
+//     url: ApiBaseUrl + "/training_sessions/upload_image",
+//     data: params,
+//     async: false,
+//     success: function(data){
+//       console.log('image upload sucess');
+//       console.log(data);
+//     }
+//   });
+//   console.log('after image upload ajax call');
+// }
 
