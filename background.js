@@ -7,10 +7,12 @@ let idleTime = 0;
 let idleTimerRunning = false;
 let buttonValue;
 let timmer_flag = false;
-let timer123;
+let interval_timmer;
 let SessionId;
 var ApiBaseUrl = 'http://localhost:3000/api/v1';
 var idleNotify = false;
+var keyPressCounter = 0;
+var mouseMovementCounter = 0;
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   console.log(request);
@@ -21,8 +23,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
       resetTimer();
       timerRunning = true;
       trainingInProgress = true;
-      clearInterval(timer123);
-      timer123 = setInterval(function(){
+      clearInterval(interval_timmer);
+      interval_timmer = setInterval(function(){
         if(trainingInProgress){
           trainingSecs = trainingSecs + 1;
           if(trainingSecs >= 60){
@@ -48,8 +50,8 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     trainingSecs = 0;
     timerRunning = false;
     trainingInProgress = false;
-     sendResponse('training stop');
-      notifyCurrentTab({key: 'stop-training', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
+    sendResponse('training stop');
+    notifyCurrentTab({key: 'stop-training', value: {timer:{hh: trainingHours, mm: trainingMins, ss:trainingSecs}}, trainingInProgress: trainingInProgress })
   }else if( request.key == 'resetTimer'){
     resetTimer();
     timmer_flag = false;
@@ -64,6 +66,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     onLogin(request.user)
   }else if(request.key == 'close-idleNotify'){
     idleNotify = false;
+    closeIdleNotify();
+  }else if(request.key == 'open-idleNotify'){
+    openIdleNotify();
+  }else if(request.key == 'keypress'){
+    keyPressCounter += 1;
+  }else if(request.key == 'mousemove'){
+    mouseMovementCounter += 1;
   }
 });
 
@@ -82,26 +91,35 @@ function notifyCurrentTab(data){
 }
 
 function uploadImage(data) {
-  let blob_image = data.blob;
-  SessionId = data.session_id;
-  let params = { session: {
-      session_id: SessionId,
-      url : data.url,
-      image: blob_image,
-    }
-  }
-  console.log('before image upload ajax call');
-  $.ajax({
-    type: "POST",
-    url: ApiBaseUrl + "/training_sessions/upload_image",
-    data: params,
-    async: false,
-    success: function(data){
-      console.log('image upload sucess');
-      console.log(data);
-    }
+   chrome.windows.getCurrent(function(window){
+      console.log(window.state);
+      if(window.state != "minimized") {
+        let blob_image = data.blob;
+        SessionId = data.session_id;
+        let params = { session: {
+            session_id: SessionId,
+            url : data.url,
+            image: blob_image,
+            mouse_movement_count : mouseMovementCounter,
+            key_press_count : keyPressCounter
+          }
+        }
+        console.log('before image upload ajax call');
+        $.ajax({
+          type: "POST",
+          url: ApiBaseUrl + "/training_sessions/upload_image",
+          data: params,
+          async: false,
+          success: function(data){
+            keyPressCounter = 0;
+            mouseMovementCounter = 0;
+            console.log('image upload sucess');
+            console.log(data);
+          }
+        });
+        console.log('after image upload ajax call');    
+      }
   });
-  console.log('after image upload ajax call');
 }
 
 function clearAllIntervals(){
@@ -172,7 +190,7 @@ function onTrainingStart(){
 function onTrainingStop(){
   let data = {
       session_id: SessionId,
-      training_status: 'end'
+      training_status: 'end',
   }
   console.log('before device ajax call');
   $.ajax({
@@ -183,8 +201,47 @@ function onTrainingStop(){
     success: function(data) {
       console.log("end of session");
       console.log(data);
-      localStorage.clear();
+      // localStorage.clear();
       SessionId = undefined;
+    }
+  });
+}
+
+function openIdleNotify(){
+  let data = {
+      idle_status: 'start',
+      session_id :  localStorage.getItem('sessionId'),
+  }
+  $.ajax({
+    type: "POST",
+    url: ApiBaseUrl + "/idle_times",
+    data: data,
+    async: false,
+    success: function(response) {
+      console.log(data);
+      idle_time_id = response.data.idle_time_id;
+      localStorage.setItem('idleTimeId', JSON.stringify(idle_time_id));
+      // notifyBackend({key: 'start-training', SessionId :SessionId});
+    }
+  });
+}
+
+function closeIdleNotify(){
+  let data = {
+      idle_status: 'end',
+      session_id :  localStorage.getItem('sessionId'),
+      idle_time_id: localStorage.getItem('idleTimeId'),
+  }
+  $.ajax({
+    type: "POST",
+    url: ApiBaseUrl + "/idle_times",
+    data: data,
+    async: false,
+    success: function(response) {
+      console.log(data);
+      idle_time_id = response.data.idle_time_id;
+      localStorage.setItem('idleTimeId', JSON.stringify(idle_time_id));
+      // notifyBackend({key: 'start-training', SessionId :SessionId});
     }
   });
 }

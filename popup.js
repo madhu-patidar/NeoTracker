@@ -30,8 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
   logout.onclick = function(){
     SessionId = localStorage.getItem('sessionId');
     if(SessionId) 
+      localStorage.clear();
       notifyBackend({key: 'stop-training'})
-     document.getElementById('trainingTime').innerText = 0 + ":" + 0 + ":" + 0;
+      document.getElementById('trainingTime').innerText = 0 + ":" + 0 + ":" + 0;
       SessionId = undefined
     // endTraining api call
 
@@ -177,26 +178,4 @@ function sendToServer(){
   console.log('after device ajax call');
 }
 
-// function uploadImage(data) {
-//   let blob_image = document.getElementById('snap').src
-//   SessionId = data.session_id
-//   localStorage.setItem('SessionId', SessionId);
-//   let params = { session: {
-//       session_id: SessionId,
-//       image: blob_image
-//     }
-//   }
-//   console.log('before image upload ajax call');
-//   $.ajax({
-//     type: "POST",
-//     url: ApiBaseUrl + "/training_sessions/upload_image",
-//     data: params,
-//     async: false,
-//     success: function(data){
-//       console.log('image upload sucess');
-//       console.log(data);
-//     }
-//   });
-//   console.log('after image upload ajax call');
-// }
 
